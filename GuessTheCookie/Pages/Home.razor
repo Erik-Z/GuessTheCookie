@@ -1,0 +1,34 @@
+﻿@page "/"
+@inject HttpClient Http
+@using GuessTheCookie.Model
+
+<PageTitle>Home</PageTitle>
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-p-12">
+    <RadzenLabel Text="Select Value" Component="DropDownDataGridTemplate" />
+    <RadzenDropDownDataGrid 
+        @bind-Value=@value 
+        Data="@cookies" 
+        TextProperty="@nameof(Cookie.Name)"
+        ValueProperty="@nameof(Cookie.Name)">
+        <Template>
+            <RadzenImage Path="@((context as Cookie).ProfileImageUrl)" Style="width: 3rem;" AlternateText="Icon" />
+        </Template>
+    </RadzenDropDownDataGrid>
+</RadzenStack>
+<RadzenButton Click="@ButtonClicked" Text="Hi"></RadzenButton>
+
+@code {
+    void ButtonClicked()
+    {
+        Console.WriteLine("Clicked");
+    }
+
+    protected string value = "";
+
+    private Cookie[]? cookies;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cookies = await Http.GetFromJsonAsync<Cookie[]>("data/cookies.json");
+    }
+}
