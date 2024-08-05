@@ -51,18 +51,43 @@ def intercept_route(route):
     return route.continue_()
 
 
+# def download_image(url, image_name) -> str:
+#     data = requests.get(url, verify=False).content
+#
+#     if data.startswith(b"data:image/gif;base64,"):
+#         data = base64.b64decode(data.split(b',')[1])
+#
+#     file_name = "./data/cookie_profile_img/" + image_name + ".webp"
+#     with open(file_name, 'wb') as image_file:
+#         image_file.write(data)
+#
+#     return file_name
+
 def download_image(url, image_name) -> str:
-    data = requests.get(url, verify=False).content
+    # Check if the URL is a data URL
+    data = ""
+    try:
+        if url.startswith('data:image/gif;base64,'):
+            # Extract base64 data from the URL
+            data = base64.b64decode(url.split(',', 1)[1])
+        else:
+            # Use requests to fetch the image data from a standard URL
+            response = requests.get(url, verify=False)
+            data = response.content
 
-    if data.startswith(b"data:image/gif;base64,"):
-        data = base64.b64decode(data.split(b',')[1])
+        # Specify the file path and name
+        file_name = "./data/cookie_profile_img/" + image_name + ".webp"
 
-    file_name = "./data/cookie_profile_img/" + image_name + ".webp"
-    with open(file_name, 'wb') as image_file:
-        image_file.write(data)
+        # Write the data to a file
+        with open(file_name, 'wb') as image_file:
+            image_file.write(data)
 
-    return file_name
-
+        return file_name
+    except Exception as e:
+        print(url)
+        print(data)
+        print(e)
+        quit(1)
 
 URL = "https://cookierunkingdom.fandom.com/wiki/List_of_Cookies"
 
@@ -77,6 +102,8 @@ with sync_playwright() as p:
     for row in table:
         cookie = {}
         cookie_url = 'https://cookierunkingdom.fandom.com' + row.div.a['href']
+        if cookie_url == 'https://cookierunkingdom.fandom.com/wiki/Princess_Cookie':
+            pass
         page.goto(cookie_url)
         cookie_soup = BeautifulSoup(page.content(), 'html5lib')
         cookie['name'] = cookie_soup.find('h2', attrs={'data-source': 'name'}).text.strip()
@@ -94,7 +121,7 @@ with sync_playwright() as p:
         cookie_list.append(cookie)
         print(cookie)
 
-with open('/data/cookies.json', 'w') as f:
+with open('./data/cookies.json', 'w') as f:
     json.dump(cookie_list, f)
 
 print("Cookies.json created successfully")
