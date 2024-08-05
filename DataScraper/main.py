@@ -102,8 +102,6 @@ with sync_playwright() as p:
     for row in table:
         cookie = {}
         cookie_url = 'https://cookierunkingdom.fandom.com' + row.div.a['href']
-        if cookie_url == 'https://cookierunkingdom.fandom.com/wiki/Princess_Cookie':
-            pass
         page.goto(cookie_url)
         cookie_soup = BeautifulSoup(page.content(), 'html5lib')
         cookie['name'] = cookie_soup.find('h2', attrs={'data-source': 'name'}).text.strip()
