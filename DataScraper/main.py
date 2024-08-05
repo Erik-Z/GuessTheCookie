@@ -64,21 +64,17 @@ def intercept_route(route):
 #     return file_name
 
 def download_image(url, image_name) -> str:
-    # Check if the URL is a data URL
     data = ""
     try:
+        # Check if the URL is a data URL
         if url.startswith('data:image/gif;base64,'):
-            # Extract base64 data from the URL
             data = base64.b64decode(url.split(',', 1)[1])
         else:
-            # Use requests to fetch the image data from a standard URL
             response = requests.get(url, verify=False)
             data = response.content
 
-        # Specify the file path and name
         file_name = "./data/cookie_profile_img/" + image_name + ".webp"
 
-        # Write the data to a file
         with open(file_name, 'wb') as image_file:
             image_file.write(data)
 
