@@ -91,6 +91,7 @@ soup = get_dynamic_soup(URL)
 table = soup.find_all('div', attrs={'class': 'loccard'})
 cookie_list = []
 with sync_playwright() as p:
+    #TODO: Check cookies.json and see if cookie exists. If it does skip scraping the data.
     browser = p.chromium.launch(headless=False)
     page = browser.new_page()
     page.set_default_timeout(0)
