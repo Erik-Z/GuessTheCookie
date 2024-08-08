@@ -1,34 +1,65 @@
 ﻿@page "/"
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Components.QuickGrid
 @using GuessTheCookie.Model
 
 <PageTitle>Home</PageTitle>
 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-p-12">
-    <RadzenLabel Text="Select Value" Component="DropDownDataGridTemplate" />
+    <RadzenLabel Text="Select Cookie" Component="DropDownDataGridTemplate" />
     <RadzenDropDownDataGrid 
-        @bind-Value=@value 
+        @bind-Value=@selectedCookie
         Data="@cookies" 
         TextProperty="@nameof(Cookie.Name)"
-        ValueProperty="@nameof(Cookie.Name)">
+        ValueProperty="@nameof(Cookie.Name)"
+        Change="@handleCookieSelected"
+        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Template>
-            <RadzenImage Path="@((context as Cookie).ProfileImageUrl)" Style="width: 3rem;" AlternateText="Icon" />
+            <RadzenImage Path="@((context as Cookie).ProfileImageUrl)" Style="width: 2rem;" AlternateText="Icon" />  |  
+            <span>@((context as Cookie).Name)</span>   |    
+            <span>@((context as Cookie).Rarity)</span>   |
+            <span>@((context as Cookie).AttackType)</span>   |
+            <span>@((context as Cookie).Position)</span>
         </Template>
     </RadzenDropDownDataGrid>
 </RadzenStack>
+
+<QuickGrid Items="CookieAnswersQueryable">
+    <PropertyColumn Property="@(p => p.Name)" Sortable="false" />
+    <PropertyColumn Property="@(p => p.Rarity)" Sortable="false" />
+    <PropertyColumn Property="@(p => p.AttackType)"Sortable="false" />
+</QuickGrid>
+
 <RadzenButton Click="@ButtonClicked" Text="Hi"></RadzenButton>
 
 @code {
     void ButtonClicked()
     {
-        Console.WriteLine("Clicked");
+        Console.WriteLine(selectedCookie);
     }
 
-    protected string value = "";
+    protected string selectedCookie = "";
+    protected bool answered = false;
 
-    private Cookie[]? cookies;
+    private Cookie[] cookies = Array.Empty<Cookie>();
+
+    private record CookieAnswer(string Name, string Rarity, string AttackType);
+
+    private List<CookieAnswer> CookieAnswers = new List<CookieAnswer>();
+    private IQueryable<CookieAnswer> CookieAnswersQueryable = new List<CookieAnswer>().AsQueryable();
+
+    protected void handleCookieSelected(object cookie)
+    {
+        cookies = (Cookie[]) cookies.Where(c => c.Name != (string)cookie);
+        Cookie selectedCookie = cookies.First(c => c.Name == (string)cookie);
+        CookieAnswer selectedCookieAnswer = new CookieAnswer(selectedCookie.Name, selectedCookie.Rarity, selectedCookie.AttackType);
+        CookieAnswers.Add(selectedCookieAnswer);
+        CookieAnswersQueryable = CookieAnswers.AsQueryable();
+
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        cookies = await Http.GetFromJsonAsync<Cookie[]>("data/cookies.json");
+        cookies = await Http.GetFromJsonAsync<Cookie[]>("data/cookies.json") ?? Array.Empty<Cookie>();
     }
+
 }
